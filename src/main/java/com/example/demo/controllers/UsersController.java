@@ -45,7 +45,16 @@ public class UsersController {
         if (!usersService.emailIsUnique(registerData.email)) return new ResponseEntity<>(HttpStatus.ALREADY_REPORTED);
 
         usersService.save(user);
-        return new ResponseEntity<>(user, HttpStatus.CREATED);  // bice token
+
+        authenticate(registerData.password, registerData.email);
+
+        final UserDetails userDetails = usersServiceImpl.loadUserByUsername(user.getEmail());
+
+        final String token = jwtTokenUtil.generateToken(userDetails);
+
+        UserDataDto userData = new UserDataDto(token, user.getUserName(), user.getFirstName(), user.getLastName(), user.getEmail());
+
+        return new ResponseEntity<>(userData, HttpStatus.CREATED);
     }
 
     @RequestMapping(value = "/users/login", method = RequestMethod.POST)
